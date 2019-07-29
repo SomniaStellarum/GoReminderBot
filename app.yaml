@@ -1,0 +1,5 @@
+# appengine yaml file
+runtime: go112
+
+env_variables:
+  VERIFY_TOKEN: 'page_access_token'

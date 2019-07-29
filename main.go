@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"google.golang.org/appengine"
 )
 
 func main() {
 	s := Server{}
 	s.routes()
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	appengine.Main()
 }
