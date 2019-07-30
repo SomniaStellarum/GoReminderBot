@@ -14,7 +14,7 @@ type Server struct {
 	verifyToken     string
 	projectID       string
 	pageAccessToken string
-	//chMessages      chan []byte
+	chMessages      chan []byte
 }
 
 func newServer(df *dialogflow.SessionsClient) (s *Server) {
@@ -23,7 +23,7 @@ func newServer(df *dialogflow.SessionsClient) (s *Server) {
 	s.verifyToken = os.Getenv("VERIFY_TOKEN")
 	s.projectID = os.Getenv("PROJECT_ID")
 	s.pageAccessToken = os.Getenv("PAGE_ACCESS_TOKEN")
-	//s.chMessages = make(chan []byte)
+	s.chMessages = make(chan []byte)
 	return s
 }
 
@@ -40,8 +40,8 @@ func (s *Server) handleWebhook() http.HandlerFunc {
 		}
 		log.Printf("Message Received. Webhook input.")
 		log.Printf("%v", string(b))
-		s.runMessaging(b)
-		//s.chMessages <- b
+		//s.runMessaging(b)
+		s.chMessages <- b
 	}
 }
 

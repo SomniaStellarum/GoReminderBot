@@ -7,34 +7,34 @@ import (
 	"net/http"
 )
 
-func (s *Server) runMessaging(b []byte) {
+func (s *Server) runMessaging() {
 	// Goroutine to handle all messaging
 	// Webhook receives message and passes it to this goroutine before
 	// returning status 200
-	//for {
-	//b := <-s.chMessages
-	obj := new(Object)
-	err := json.Unmarshal(b, obj)
-	if err != nil {
-		log.Printf("Error Unmarshalling Message: %v", err)
-		//continue
-		return
-	}
-	for _, e := range obj.Entries {
-		for _, m := range e.Messages {
-			sender := m.Sender.ID
-			//recipient := m.Recipient.ID
-			text := m.Mes.Text
-			reply, err := s.parseText(sender, text)
-			if err != nil {
-				log.Printf("Error Parsing Text: %v", err)
-				continue
+	for {
+		b := <-s.chMessages
+		obj := new(Object)
+		err := json.Unmarshal(b, obj)
+		if err != nil {
+			log.Printf("Error Unmarshalling Message: %v", err)
+			//continue
+			return
+		}
+		for _, e := range obj.Entries {
+			for _, m := range e.Messages {
+				sender := m.Sender.ID
+				//recipient := m.Recipient.ID
+				text := m.Mes.Text
+				reply, err := s.parseText(sender, text)
+				if err != nil {
+					log.Printf("Error Parsing Text: %v", err)
+					continue
+				}
+				m := NewResponseMessage(sender, reply)
+				s.sendMessage(m)
 			}
-			m := NewResponseMessage(sender, reply)
-			s.sendMessage(m)
 		}
 	}
-	//}
 }
 
 func (s *Server) sendMessage(m *MessageBody) {

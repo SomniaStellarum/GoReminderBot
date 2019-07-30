@@ -20,7 +20,7 @@ func main() {
 	s := newServer(cl)
 	s.routes()
 
-	//go s.runMessaging()
+	go s.runMessaging()
 
 	port := os.Getenv("PORT")
 	if port == "" {
