@@ -1,16 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	dialogflow "cloud.google.com/go/dialogflow/apiv2"
 )
 
 func main() {
-	s := Server{}
+	ctx := context.Background()
+	cl, err := dialogflow.NewSessionsClient(ctx)
+	if err != nil {
+		log.Fatal("Couldn't open dialogflow client.")
+	}
+	defer cl.Close()
+	s := newServer(cl)
 	s.routes()
-	// appengine.Main()
+
+	go s.runMessaging()
 
 	port := os.Getenv("PORT")
 	if port == "" {

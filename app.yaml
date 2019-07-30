@@ -2,4 +2,6 @@
 runtime: go112
 
 env_variables:
-  VERIFY_TOKEN: 'page_access_token'
+  VERIFY_TOKEN: 'fb_bot_verify_token'
+  PROJECT_ID: 'dialogflow_project_id'
+  PAGE_ACCESS_TOKEN: 'page_access_token'
