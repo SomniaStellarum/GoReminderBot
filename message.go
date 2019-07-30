@@ -38,6 +38,7 @@ func (s *Server) runMessaging(b []byte) {
 }
 
 func (s *Server) sendMessage(m *MessageBody) {
+	log.Printf("Sending Message")
 	b, err := json.Marshal(m)
 	if err != nil {
 		log.Printf("Error Marshalling Reply: %v", err)
@@ -52,5 +53,12 @@ func (s *Server) sendMessage(m *MessageBody) {
 	q := req.URL.Query()
 	q.Add("access_token", s.pageAccessToken)
 	req.URL.RawQuery = q.Encode()
-	http.DefaultClient.Do(req)
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("Error Replying: %v\n%v", err, res)
+		return
+	}
+	log.Printf("Message Sent")
+	log.Printf("Response: %v", res)
 }

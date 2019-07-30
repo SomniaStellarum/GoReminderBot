@@ -9,6 +9,7 @@ import (
 )
 
 func (s *Server) parseText(sessionID, text string) (reply string, err error) {
+	log.Printf("SessionID: %v\n Message: %v", sessionID, text)
 	ctx := context.Background()
 	sessionPath := fmt.Sprintf("projects/%s/agent/sessions/%s", s.projectID, sessionID)
 	textInput := dialogflowpb.TextInput{Text: text, LanguageCode: "en"}
@@ -24,5 +25,6 @@ func (s *Server) parseText(sessionID, text string) (reply string, err error) {
 
 	queryResult := response.GetQueryResult()
 	reply = queryResult.GetFulfillmentText()
+	log.Printf("Reply: %v", reply)
 	return reply, nil
 }
