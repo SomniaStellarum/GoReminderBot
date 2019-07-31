@@ -17,7 +17,10 @@ func main() {
 		log.Fatal("Couldn't open dialogflow client.")
 	}
 	defer cl.Close()
-	s := newServer(cl)
+	s, err := newServer(cl)
+	if err != nil {
+		log.Fatalf("Error Creating Server: %v", err)
+	}
 	s.routes()
 
 	go s.runMessaging()

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	_struct "github.com/golang/protobuf/ptypes/struct"
 )
 
 func (s *Server) runMessaging() {
@@ -17,27 +19,31 @@ func (s *Server) runMessaging() {
 		err := json.Unmarshal(b, obj)
 		if err != nil {
 			log.Printf("Error Unmarshalling Message: %v", err)
-			//continue
-			return
+			continue
 		}
 		for _, e := range obj.Entries {
 			for _, m := range e.Messages {
 				sender := m.Sender.ID
-				//recipient := m.Recipient.ID
 				text := m.Mes.Text
-				reply, err := s.parseText(sender, text)
+				//reply, queryResult, err := s.parseText(sender, text)
+				_, queryResult, err := s.parseText(sender, text)
 				if err != nil {
 					log.Printf("Error Parsing Text: %v", err)
 					continue
 				}
-				m := NewResponseMessage(sender, reply)
+				switch action := queryResult.GetAction(); action {
+				case "reminders.add":
+					//queryResult.
+				}
+				m := queryResult.GetWebhookPayload()
+				//m := NewResponseMessage(sender, reply)
 				s.sendMessage(m)
 			}
 		}
 	}
 }
 
-func (s *Server) sendMessage(m *MessageBody) {
+func (s *Server) sendMessage(m *_struct.Struct) {
 	log.Printf("Sending Message")
 	b, err := json.Marshal(m)
 	if err != nil {

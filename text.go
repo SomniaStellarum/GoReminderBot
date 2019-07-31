@@ -8,7 +8,7 @@ import (
 	dialogflowpb "google.golang.org/genproto/googleapis/cloud/dialogflow/v2"
 )
 
-func (s *Server) parseText(sessionID, text string) (reply string, err error) {
+func (s *Server) parseText(sessionID, text string) (reply string, queryResult *dialogflowpb.QueryResult, err error) {
 	log.Printf("SessionID: %v\n Message: %v", sessionID, text)
 	ctx := context.Background()
 	sessionPath := fmt.Sprintf("projects/%s/agent/sessions/%s", s.projectID, sessionID)
@@ -20,11 +20,15 @@ func (s *Server) parseText(sessionID, text string) (reply string, err error) {
 	response, err := s.df.DetectIntent(ctx, &request)
 	if err != nil {
 		log.Printf("Error Detecting Intent: %v", err)
-		return "", err
+		return "", nil, err
 	}
 
-	queryResult := response.GetQueryResult()
+	queryResult = response.GetQueryResult()
+	//if queryResult.AllRequiredParamsPresent {
 	reply = queryResult.GetFulfillmentText()
 	log.Printf("Reply: %v", reply)
-	return reply, nil
+	return reply, queryResult, nil
+	//}
+
+	//return reply, nil
 }

@@ -1,30 +1,38 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/datastore"
 	dialogflow "cloud.google.com/go/dialogflow/apiv2"
 )
 
 type Server struct {
 	df              *dialogflow.SessionsClient
+	dataClient      *datastore.Client
 	verifyToken     string
 	projectID       string
 	pageAccessToken string
 	chMessages      chan []byte
 }
 
-func newServer(df *dialogflow.SessionsClient) (s *Server) {
+func newServer(df *dialogflow.SessionsClient) (s *Server, err error) {
+	ctx := context.Background()
 	s = new(Server)
 	s.df = df
 	s.verifyToken = os.Getenv("VERIFY_TOKEN")
 	s.projectID = os.Getenv("PROJECT_ID")
 	s.pageAccessToken = os.Getenv("PAGE_ACCESS_TOKEN")
+	s.dataClient, err = datastore.NewClient(ctx, s.projectID)
+	if err != nil {
+		return nil, err
+	}
 	s.chMessages = make(chan []byte)
-	return s
+	return s, nil
 }
 
 func (s *Server) handleWebhook() http.HandlerFunc {
