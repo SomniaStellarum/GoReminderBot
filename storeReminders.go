@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -25,6 +26,6 @@ type UserData struct {
 }
 
 func (s *Server) storeReminder(id, name string, t time.Time) error {
-
+	log.Printf("Storing Reminder. \nName: %v\nTime: %v", name, t)
 	return nil
 }

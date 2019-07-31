@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	_struct "github.com/golang/protobuf/ptypes/struct"
+	"time"
 )
 
 func (s *Server) runMessaging() {
@@ -25,25 +24,41 @@ func (s *Server) runMessaging() {
 			for _, m := range e.Messages {
 				sender := m.Sender.ID
 				text := m.Mes.Text
-				//reply, queryResult, err := s.parseText(sender, text)
-				_, queryResult, err := s.parseText(sender, text)
+				reply, queryResult, err := s.parseText(sender, text)
 				if err != nil {
 					log.Printf("Error Parsing Text: %v", err)
 					continue
 				}
-				switch action := queryResult.GetAction(); action {
-				case "reminders.add":
-					//queryResult.
+				if !queryResult.GetAllRequiredParamsPresent() {
+					switch action := queryResult.GetAction(); action {
+					case "reminders.add":
+						var t time.Time
+						var name string
+						params := queryResult.GetParameters()
+						fields := params.GetFields()
+						for f, v := range fields {
+							switch f {
+							case "date-time":
+								s := v.GetStringValue()
+								t, err = time.Parse(time.RFC3339, s)
+								if err != nil {
+									log.Printf("Error Formating Time: %v", err)
+								}
+							case "name":
+								name = v.GetStringValue()
+							}
+							s.storeReminder(sender, name, t)
+						}
+					}
 				}
-				m := queryResult.GetWebhookPayload()
-				//m := NewResponseMessage(sender, reply)
+				m := NewResponseMessage(sender, reply)
 				s.sendMessage(m)
 			}
 		}
 	}
 }
 
-func (s *Server) sendMessage(m *_struct.Struct) {
+func (s *Server) sendMessage(m *MessageBody) {
 	log.Printf("Sending Message")
 	b, err := json.Marshal(m)
 	if err != nil {
