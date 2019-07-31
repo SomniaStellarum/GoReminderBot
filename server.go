@@ -17,6 +17,7 @@ type Server struct {
 	verifyToken     string
 	projectID       string
 	pageAccessToken string
+	debugMode       bool
 	chMessages      chan []byte
 }
 
@@ -27,6 +28,9 @@ func newServer(df *dialogflow.SessionsClient) (s *Server, err error) {
 	s.verifyToken = os.Getenv("VERIFY_TOKEN")
 	s.projectID = os.Getenv("PROJECT_ID")
 	s.pageAccessToken = os.Getenv("PAGE_ACCESS_TOKEN")
+	if os.Getenv("DEBUG_MODE") == "TRUE" {
+		s.debugMode = true
+	}
 	s.dataClient, err = datastore.NewClient(ctx, s.projectID)
 	if err != nil {
 		return nil, err

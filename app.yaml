@@ -5,3 +5,4 @@ env_variables:
   VERIFY_TOKEN: 'fb_bot_verify_token'
   PROJECT_ID: 'dialogflow_project_id'
   PAGE_ACCESS_TOKEN: 'page_access_token'
+  DEBUG_MODE: 'FALSE'

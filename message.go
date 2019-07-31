@@ -29,7 +29,7 @@ func (s *Server) runMessaging() {
 					log.Printf("Error Parsing Text: %v", err)
 					continue
 				}
-				if !queryResult.GetAllRequiredParamsPresent() {
+				if queryResult.GetAllRequiredParamsPresent() {
 					switch action := queryResult.GetAction(); action {
 					case "reminders.add":
 						var t time.Time
@@ -52,7 +52,9 @@ func (s *Server) runMessaging() {
 					}
 				}
 				m := NewResponseMessage(sender, reply)
-				s.sendMessage(m)
+				if !s.debugMode {
+					s.sendMessage(m)
+				}
 			}
 		}
 	}
