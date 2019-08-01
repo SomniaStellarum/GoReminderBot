@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 const (
 	StatusPre int = iota + 1
+	StatusAlert
 	StatusSnoozed
 	StatusDone
 )
@@ -51,4 +53,20 @@ func (s *Server) storeReminder(id, name string, t time.Time) error {
 		log.Printf("Error Storing Data in Datastore: %v", err)
 	}
 	return err
+}
+
+func (s *Server) getReminders(id string) ([]*Reminder, error) {
+	ctx := context.Background()
+	data := new(UserData)
+	k := datastore.NameKey("Reminder", id, nil)
+	err := s.dataClient.Get(ctx, k, data)
+	if err != nil {
+		log.Printf("Error Getting Data: %v", err)
+		return nil, err
+	}
+	return data.Reminders, nil
+}
+
+func (r *Reminder) String() string {
+	return fmt.Sprintf("Reminder: %v --- Time: %v", r.Desc, r.SetTime.Format("Mon Jan _2 - 3:04PM"))
 }

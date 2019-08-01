@@ -52,10 +52,44 @@ func (s *Server) runMessaging() {
 						if err != nil {
 							log.Printf("Error Storing Data: %v", err)
 						}
+						m := NewResponseMessage(sender, reply)
+						printMessage(m)
+						if !s.debugMode {
+							s.sendMessage(m)
+						}
+					case "reminders.get":
+						rem, err := s.getReminders(sender)
+						if err != nil {
+							log.Printf("Error getting Reminders: %v", err)
+							continue
+						}
+						for _, r := range rem {
+							if r.Status == StatusPre {
+								m := NewResponseMessage(sender, r.String())
+								s.sendMessage(m)
+							}
+						}
+					case "reminders.snooze":
+						rem, err := s.getReminders(sender)
+						if err != nil {
+							log.Printf("Error getting Reminders: %v", err)
+							continue
+						}
+						for _, r := range rem {
+							if r.Status == StatusAlert {
+								r.Status = StatusSnoozed
+								params := queryResult.GetParameters()
+								fields := params.GetFields()
+								s := fields["date-time"].GetStringValue()
+								r.NextTime, err = time.Parse(time.RFC3339, s)
+								if err != nil {
+									log.Printf("Error Parsing Time: %v", err)
+								}
+							}
+						}
 					}
-				}
-				m := NewResponseMessage(sender, reply)
-				if !s.debugMode {
+				} else {
+					m := NewResponseMessage(sender, reply)
 					s.sendMessage(m)
 				}
 			}
@@ -64,27 +98,33 @@ func (s *Server) runMessaging() {
 }
 
 func (s *Server) sendMessage(m *MessageBody) {
-	log.Printf("Sending Message")
-	b, err := json.Marshal(m)
-	if err != nil {
-		log.Printf("Error Marshalling Reply: %v", err)
-		return
+	if !s.debugMode {
+		log.Printf("Sending Message")
+		b, err := json.Marshal(m)
+		if err != nil {
+			log.Printf("Error Marshalling Reply: %v", err)
+			return
+		}
+		buf := bytes.NewBuffer(b)
+		req, err := http.NewRequest("POST", "https://graph.facebook.com/v4.0/me/messages", buf)
+		if err != nil {
+			log.Printf("Error Creating Reply Request: %v", err)
+			return
+		}
+		q := req.URL.Query()
+		q.Add("access_token", s.pageAccessToken)
+		req.URL.RawQuery = q.Encode()
+		req.Header.Set("Content-Type", "application/json")
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Printf("Error Replying: %v\n%v", err, res)
+			return
+		}
+		log.Printf("Message Sent")
+		log.Printf("Response: %v", res)
 	}
-	buf := bytes.NewBuffer(b)
-	req, err := http.NewRequest("POST", "https://graph.facebook.com/v4.0/me/messages", buf)
-	if err != nil {
-		log.Printf("Error Creating Reply Request: %v", err)
-		return
-	}
-	q := req.URL.Query()
-	q.Add("access_token", s.pageAccessToken)
-	req.URL.RawQuery = q.Encode()
-	req.Header.Set("Content-Type", "application/json")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Printf("Error Replying: %v\n%v", err, res)
-		return
-	}
-	log.Printf("Message Sent")
-	log.Printf("Response: %v", res)
+}
+
+func printMessage(m *MessageBody) {
+	log.Printf("Message: %v\nTo Recipient: %v", m.Mes, m.Recipient)
 }
