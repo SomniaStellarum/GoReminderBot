@@ -47,7 +47,10 @@ func (s *Server) runMessaging() {
 							case "name":
 								name = v.GetStringValue()
 							}
-							s.storeReminder(sender, name, t)
+						}
+						err = s.storeReminder(sender, name, t)
+						if err != nil {
+							log.Printf("Error Storing Data: %v", err)
 						}
 					}
 				}
