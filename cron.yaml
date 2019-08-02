@@ -1,4 +1,4 @@
 cron:
 - description: "check alerts every 5mins"
-  url: /alerts
+  url: /alert
   schedule: every 1 mins
