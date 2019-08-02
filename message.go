@@ -60,14 +60,21 @@ func (s *Server) manageMessage(sender, text string) {
 				switch f {
 				case "date-time":
 					s := v.GetStringValue()
-					t, err = time.Parse(time.RFC3339, s)
+					utc, err := time.LoadLocation("UTC")
+					if err != nil {
+						log.Printf("Error creating UTC Time")
+						continue
+					}
+					t, err = time.ParseInLocation(time.RFC3339, s, utc)
 					if err != nil {
 						log.Printf("Error Formating Time: %v", err)
+						continue
 					}
 
 					location, err := time.LoadLocation("Local")
 					if err != nil {
 						log.Printf("Error Getting Local Time")
+						continue
 					}
 					t = t.In(location)
 				case "name":
@@ -123,13 +130,8 @@ func (s *Server) manageMessage(sender, text string) {
 			for _, r := range rem {
 				if r.Status == StatusAlert {
 					r.Status = StatusDone
-					params := queryResult.GetParameters()
-					fields := params.GetFields()
-					s := fields["date-time"].GetStringValue()
-					r.NextTime, err = time.Parse(time.RFC3339, s)
-					if err != nil {
-						log.Printf("Error Parsing Time: %v", err)
-					}
+					m := NewResponseMessage(sender, reply)
+					s.sendMessage(m)
 				}
 			}
 		default:
