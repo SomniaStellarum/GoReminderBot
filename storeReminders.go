@@ -28,6 +28,11 @@ type UserData struct {
 	Reminders []*Reminder    `datastore:"reminders"`
 }
 
+type Data struct {
+	UserID    string
+	Reminders []*Reminder
+}
+
 func (s *Server) storeReminder(id, name string, t time.Time) error {
 	log.Printf("Storing Reminder. \nName: %v\nTime: %v", name, t)
 	// Setup Reminder
@@ -67,6 +72,60 @@ func (s *Server) getReminders(id string) ([]*Reminder, error) {
 	return data.Reminders, nil
 }
 
+func (s *Server) updateReminders(id string, reminders []*Reminder) error {
+	ctx := context.Background()
+	data := new(UserData)
+	k := datastore.NameKey("Reminder", id, nil)
+	data.Reminders = reminders
+	data.UserID = k
+	_, err := s.dataClient.Put(ctx, k, data)
+	return err
+}
+
+func (s *Server) isUser(id string) bool {
+	ctx := context.Background()
+	data := new(UserData)
+	k := datastore.NameKey("Reminder", id, nil)
+	err := s.dataClient.Get(ctx, k, data)
+	if err == datastore.ErrNoSuchEntity {
+		return false
+	}
+	return true
+}
+
+func (s *Server) getAllReminders() ([]*Data, error) {
+	ctx := context.Background()
+	q := datastore.NewQuery("")
+	data := make([]*UserData, 0)
+	_, err := s.dataClient.GetAll(ctx, q, data)
+	if err != nil {
+		return nil, err
+	}
+	outData := make([]*Data, 0)
+	for _, d := range data {
+		outD := new(Data)
+		outD.Reminders = d.Reminders
+		outD.UserID = d.UserID.String()
+	}
+	return outData, nil
+}
+
 func (r *Reminder) String() string {
-	return fmt.Sprintf("Reminder: %v --- Time: %v", r.Desc, r.SetTime.Format("Mon Jan _2 - 3:04PM"))
+	var status string
+	switch r.Status {
+	case StatusPre:
+		status = "Set"
+	case StatusDone:
+		status = "Complete"
+	case StatusAlert:
+		status = "Ringing"
+	case StatusSnoozed:
+		status = "Snoozed"
+	}
+	return fmt.Sprintf(
+		"Reminder: %v --- Time: %v --- Status: %v",
+		r.Desc,
+		r.SetTime.Format("Mon Jan _2 - 3:04PM"),
+		status,
+	)
 }

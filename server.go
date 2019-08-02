@@ -70,3 +70,9 @@ func (s *Server) handleWebhookVerification() http.HandlerFunc {
 		}
 	}
 }
+
+func (s *Server) handleAlerts() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.sendAlerts()
+	}
+}
