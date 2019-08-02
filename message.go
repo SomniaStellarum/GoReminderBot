@@ -64,6 +64,12 @@ func (s *Server) manageMessage(sender, text string) {
 					if err != nil {
 						log.Printf("Error Formating Time: %v", err)
 					}
+
+					location, err := time.LoadLocation("Local")
+					if err != nil {
+						log.Printf("Error Getting Local Time")
+					}
+					t = t.In(location)
 				case "name":
 					name = v.GetStringValue()
 				}
