@@ -95,9 +95,9 @@ func (s *Server) isUser(id string) bool {
 
 func (s *Server) getAllReminders() ([]*Data, error) {
 	ctx := context.Background()
-	q := datastore.NewQuery("")
+	q := datastore.NewQuery("Reminder")
 	data := make([]*UserData, 0)
-	_, err := s.dataClient.GetAll(ctx, q, data)
+	_, err := s.dataClient.GetAll(ctx, q, &data)
 	if err != nil {
 		return nil, err
 	}

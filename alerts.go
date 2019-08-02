@@ -15,11 +15,13 @@ func (s *Server) sendAlerts() {
 	}
 	t := time.Now()
 	for _, d := range data {
+		log.Printf("Checking Reminders for %v. Number: %v", d.UserID, len(d.Reminders))
 		var rems []string
 		alert := false
 		for _, r := range d.Reminders {
 			preAlarm := (r.Status == StatusPre) && (r.SetTime.After(t))
 			snoozeAlarm := (r.Status == StatusSnoozed) && (r.NextTime.After(t))
+			log.Printf("Reminder: %v Pre?: %v Snooze?: %v", r.Desc, preAlarm, snoozeAlarm)
 			if preAlarm || snoozeAlarm {
 				alert = true
 				rems = append(rems, r.Desc)
