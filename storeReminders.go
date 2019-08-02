@@ -105,7 +105,8 @@ func (s *Server) getAllReminders() ([]*Data, error) {
 	for _, d := range data {
 		outD := new(Data)
 		outD.Reminders = d.Reminders
-		outD.UserID = d.UserID.String()
+		outD.UserID = d.UserID.Name
+		outData = append(outData, outD)
 	}
 	return outData, nil
 }

@@ -65,3 +65,20 @@ func NewMessageAttach(to string, reminderText []string) *MessageAttach {
 	}
 	return m
 }
+
+func NewWelcome(to string) *MessageAttach {
+	m := new(MessageAttach)
+	m.Recipient.ID = to
+	m.MessagingType = "RESPONSE"
+	m.Mes.Attach.TypeOf = "template"
+	m.Mes.Attach.P.TemplateType = "generic"
+	m.Mes.Attach.P.Elem = append(
+		m.Mes.Attach.P.Elem,
+		NewElement("Welcome to Reminder Bot", false),
+	)
+	m.Mes.Attach.P.Elem = append(
+		m.Mes.Attach.P.Elem,
+		NewElement("Just send a message and we'll take care of it", false),
+	)
+	return m
+}

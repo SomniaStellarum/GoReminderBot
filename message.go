@@ -23,9 +23,17 @@ func (s *Server) runMessaging() {
 			}
 			for _, e := range obj.Entries {
 				for _, m := range e.Messages {
-					sender := m.Sender.ID
-					text := m.Mes.Text
-					s.manageMessage(sender, text)
+					if m.Mes.Text != "" {
+						sender := m.Sender.ID
+						text := m.Mes.Text
+						s.manageMessage(sender, text)
+					} else if m.Pb.P != "" {
+						sender := m.Sender.ID
+						text := m.Pb.P
+						s.manageMessage(sender, text)
+					} else {
+						log.Printf("Message format error. No Postback or Message")
+					}
 				}
 			}
 		}
@@ -33,6 +41,9 @@ func (s *Server) runMessaging() {
 }
 
 func (s *Server) manageMessage(sender, text string) {
+	if !s.isUser(sender) {
+		s.sendWelcome(sender)
+	}
 	reply, queryResult, err := s.parseText(sender, text)
 	if err != nil {
 		log.Printf("Error Parsing Text: %v", err)
@@ -95,6 +106,27 @@ func (s *Server) manageMessage(sender, text string) {
 		case "reminders.remove":
 			rem := make([]*Reminder, 0)
 			s.updateReminders(sender, rem)
+			m := NewResponseMessage(sender, reply)
+			s.sendMessage(m)
+		case "reminders.accept":
+			rem, err := s.getReminders(sender)
+			if err != nil {
+				log.Printf("Error getting Reminders: %v", err)
+				return
+			}
+			for _, r := range rem {
+				if r.Status == StatusAlert {
+					r.Status = StatusDone
+					params := queryResult.GetParameters()
+					fields := params.GetFields()
+					s := fields["date-time"].GetStringValue()
+					r.NextTime, err = time.Parse(time.RFC3339, s)
+					if err != nil {
+						log.Printf("Error Parsing Time: %v", err)
+					}
+				}
+			}
+		default:
 			m := NewResponseMessage(sender, reply)
 			s.sendMessage(m)
 		}

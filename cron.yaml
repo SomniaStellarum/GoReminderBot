@@ -1,0 +1,4 @@
+cron:
+- description: "check alerts every 5mins"
+  url: /alerts
+  schedule: every 1 mins
