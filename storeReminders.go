@@ -123,10 +123,15 @@ func (r *Reminder) String() string {
 	case StatusSnoozed:
 		status = "Snoozed"
 	}
+	tz, err := time.LoadLocation("America/Chicago")
+	if err != nil {
+		log.Printf("Error loading location")
+		return ""
+	}
 	return fmt.Sprintf(
 		"Reminder: %v --- Time: %v --- Status: %v",
 		r.Desc,
-		r.SetTime.Format("Mon Jan _2 - 3:04PM"),
+		r.SetTime.In(tz).Format("Mon Jan _2 - 3:04PM"),
 		status,
 	)
 }
